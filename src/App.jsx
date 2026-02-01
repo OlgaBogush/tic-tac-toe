@@ -1,54 +1,50 @@
-import { useState } from "react"
-import Square from "./Square"
-import calculateWinner from "./helper"
+import React, { useState } from "react"
+import Board from "./components/Board"
 
-function Board() {
-  const [squares, setSquares] = useState(Array(9).fill(null))
-  const [isNext, setIsNext] = useState(true)
+const Game = () => {
+  const [history, setHistory] = useState([Array(9).fill(null)])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const isNext = currentIndex % 2 === 0
+  const currentSquares = history[currentIndex]
 
-  // status
-  let status
-  const winner = calculateWinner(squares)
-  if (winner) {
-    status = `Winner: ${winner}`
-  } else {
-    status = `Next player: ${isNext ? "X" : "O"}`
+  function handlePlay(someArray) {
+    const nextHistory = [...history.slice(0, currentIndex + 1), someArray]
+    setHistory(nextHistory)
+    setCurrentIndex(nextHistory.length - 1)
   }
 
-  function handleClick(index) {
-    if (squares[index] || calculateWinner(squares)) return
+  function jumpTo(nextIndex) {
+    setCurrentIndex(nextIndex)
+  }
 
-    const array = squares.slice()
-
-    if (isNext) {
-      array[index] = "X"
+  const moves = history.map((_, index) => {
+    let description
+    if (index > 0) {
+      description = `Go to move ${index}`
     } else {
-      array[index] = "O"
+      description = "Go to game start"
     }
-    setSquares(array)
-    setIsNext(!isNext)
-  }
+    return (
+      <li key={index}>
+        <button onClick={() => jumpTo(index)}>{description}</button>
+      </li>
+    )
+  })
 
   return (
-    <>
-      <div className="status">{status}</div>
-      <div className="board-row">
-        <Square value={squares[0]} handleClick={() => handleClick(0)} />
-        <Square value={squares[1]} handleClick={() => handleClick(1)} />
-        <Square value={squares[2]} handleClick={() => handleClick(2)} />
+    <div className="game">
+      <div className="game-board">
+        <Board
+          isNext={isNext}
+          currentSquares={currentSquares}
+          handlePlay={handlePlay}
+        />
       </div>
-      <div className="board-row">
-        <Square value={squares[3]} handleClick={() => handleClick(3)} />
-        <Square value={squares[4]} handleClick={() => handleClick(4)} />
-        <Square value={squares[5]} handleClick={() => handleClick(5)} />
+      <div className="game-info">
+        <ol>{moves}</ol>
       </div>
-      <div className="board-row">
-        <Square value={squares[6]} handleClick={() => handleClick(6)} />
-        <Square value={squares[7]} handleClick={() => handleClick(7)} />
-        <Square value={squares[8]} handleClick={() => handleClick(8)} />
-      </div>
-    </>
+    </div>
   )
 }
 
-export default Board
+export default Game
